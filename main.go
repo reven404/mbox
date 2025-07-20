@@ -174,10 +174,15 @@ func runMount(config *Config, logger *logrus.Logger) {
 
 func createProvider(mountType string, config *providers.Config, handler providers.FileSystemHandler) providers.Provider {
 	switch strings.ToLower(mountType) {
-	case "macos-fileprovider", "windows-cloudfiles", "windows-legacy":
-		// These providers are only available on specific platforms with build tags
-		// Fall back to simple provider for now
-		return providers.NewRcloneSDKProvider(config, handler)
+	case "macos-fileprovider":
+		// Use native macOS File Provider
+		return providers.NewMacOSFileProvider(config, handler)
+	case "windows-cloudfiles":
+		// Use native Windows Cloud Files API
+		return providers.NewWindowsCloudFiles(config, handler)
+	case "windows-legacy":
+		// Use Windows legacy provider for older versions
+		return providers.NewWindowsLegacyProvider(config, handler)
 	case "rclone", "rclone-sdk":
 		return providers.NewRcloneSDKProvider(config, handler)
 	case "webdav":

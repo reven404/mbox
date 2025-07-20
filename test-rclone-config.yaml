@@ -1,0 +1,34 @@
+# Rclone configuration for mdriver
+tusd_url: "http://localhost:1080"
+mount_point: "/tmp/rclone-mount"
+mount_type: "rclone"
+log_level: "info"
+
+# Rclone specific configuration
+rclone_config: "myremote:"  # Replace with your configured remote name
+
+# Mount options
+vfs_cache: "auto"  # off, minimal, writes, full, auto
+mount_options:
+  - "--vfs-cache-max-age=1h"
+  - "--vfs-cache-max-size=1G"
+  - "--buffer-size=64M"
+  - "--dir-cache-time=72h"
+
+# Performance settings
+chunk_size: 16777216  # 16MB
+max_retries: 3
+retry_delay: 2
+
+# Cache configuration
+cache_dir: "/tmp/mdriver-cache"
+cache_size: 1073741824  # 1GB
+
+# Advanced settings
+debug_mode: true
+background_sync: true
+health_check_interval: 30  # seconds
+stats_reporting_interval: 60  # seconds
+
+# Rclone binary path (auto-detected if not specified)
+# rclone_binary: "/usr/local/bin/rclone"

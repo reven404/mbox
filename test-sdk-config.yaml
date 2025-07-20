@@ -1,0 +1,23 @@
+# Test configuration for SDK integration
+tusd_url: "http://localhost:1080"
+mount_point: "/tmp/mdriver-sdk-test"
+mount_type: "rclone"
+log_level: "info"
+
+# Rclone SDK configuration
+rclone_config: "local:"  # Use local filesystem for testing
+
+# Performance settings
+chunk_size: 16777216  # 16MB
+max_retries: 3
+retry_delay: 2
+
+# Cache configuration
+cache_dir: "/tmp/mdriver-sdk-cache"
+cache_size: 1073741824  # 1GB
+
+# Advanced settings
+debug_mode: false
+background_sync: true
+health_check_interval: 30  # seconds
+stats_reporting_interval: 60  # seconds

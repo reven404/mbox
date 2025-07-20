@@ -167,8 +167,9 @@ func GetCapabilities(info PlatformInfo) []Capability {
 func getMacOSCapabilities(info PlatformInfo) []Capability {
 	capabilities := []Capability{}
 
-	// File Provider API (macOS 10.15+)
-	if info.MajorVersion >= 10 && info.MinorVersion >= 15 {
+	// File Provider API (macOS 10.15+ or macOS 11+)
+	// macOS versions: 10.15 = Catalina, 11+ = Big Sur and later, 15+ = Sequoia
+	if (info.MajorVersion == 10 && info.MinorVersion >= 15) || info.MajorVersion >= 11 {
 		capabilities = append(capabilities, Capability{
 			Name:          "macos-fileprovider",
 			SupportLevel:  SupportLevelNative,
@@ -205,8 +206,8 @@ func getWindowsCapabilities(info PlatformInfo) []Capability {
 				SupportLevel:  SupportLevelNative,
 				RequiredOS:    "windows",
 				MinVersion:    "10.0.17763",
-				Description:   "Native Windows Cloud Files API integration",
-				Prerequisites: []string{"Windows 10 1809+", "Developer mode or signed app"},
+				Description:   "Native Windows Cloud Files API for Smart Folders",
+				Prerequisites: []string{"Windows 10 1809+", "Visual Studio C++ build tools", "Windows SDK"},
 			})
 		}
 	}
@@ -317,10 +318,11 @@ func GetRecommendations(config *Config) []string {
 
 	switch info.OS {
 	case "darwin":
-		if info.MajorVersion >= 10 && info.MinorVersion >= 15 {
+		if (info.MajorVersion == 10 && info.MinorVersion >= 15) || info.MajorVersion >= 11 {
 			recommendations = append(recommendations,
 				"推荐使用 macOS File Provider API 获得最佳集成体验",
 				"如需高性能，可使用 rclone SDK + macFUSE",
+				"使用 go build -tags fileprovider 启用 File Provider API",
 			)
 		} else {
 			recommendations = append(recommendations,
@@ -333,8 +335,10 @@ func GetRecommendations(config *Config) []string {
 		buildNum := parseBuildNumber(info.Version)
 		if info.MajorVersion >= 10 && buildNum >= 17763 {
 			recommendations = append(recommendations,
-				"推荐使用 Windows Cloud Files API 获得最佳集成体验",
-				"需要启用开发者模式或对应用进行签名",
+				"推荐使用 Windows Cloud Files API 创建 Smart Folder",
+				"使用 go build -tags cloudfiles 启用 Cloud Files API",
+				"需要 Visual Studio C++ 构建工具和 Windows SDK",
+				"提供原生 Windows Explorer 集成和文件占位符功能",
 			)
 		} else {
 			recommendations = append(recommendations,

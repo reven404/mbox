@@ -6,7 +6,7 @@ max_retries: 3
 retry_delay_seconds: 5
 
 # Mount configuration (optional)
-mount_point: ""                    # Mount point path, e.g., "/mnt/tusd" or "Z:"
+mount_point: "/Users/avro/Labs/TBD-v2025/frameworks/ory/apps/mdriver/test_smart_folder"                    # Mount point path, e.g., "/mnt/tusd" or "Z:"
 mount_type: "auto"                 # "auto", "macos-fileprovider", "windows-cloudfiles", "rclone", "webdav"
 webdav_port: 8080                 # WebDAV server port
 bundle_id: "com.mdriver.fileprovider"  # macOS File Provider bundle ID
