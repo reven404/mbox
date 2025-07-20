@@ -1,0 +1,20 @@
+tusd_url: "http://localhost:1080/files/"
+watch_dir: "./test_smart_folder"
+log_level: "info"
+chunk_size: 1048576  # 1MB
+max_retries: 3
+retry_delay_seconds: 5
+
+# Mount configuration (optional)
+mount_point: ""                    # Mount point path, e.g., "/mnt/tusd" or "Z:"
+mount_type: "auto"                 # "auto", "macos-fileprovider", "windows-cloudfiles", "rclone", "webdav"
+webdav_port: 8080                 # WebDAV server port
+bundle_id: "com.mdriver.fileprovider"  # macOS File Provider bundle ID
+display_name: "Tusd Sync"         # Display name for mounted volume
+provider_name: "TusdSync Provider" # Windows Cloud Files provider name
+sync_root_path: ""                 # Windows sync root path
+cache_dir: ""                      # Cache directory for rclone and file operations
+cache_size: 1073741824            # Cache size in bytes (1GB)
+read_only: false                   # Mount as read-only
+debug_mode: false                  # Enable debug logging for mount operations
+rclone_config: ""                 # Custom rclone config file path (SDK mode)

@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Snapcraft
+        run: |
+          sudo snap install snapcraft --classic
+          
+      - name: Setup Cross-compilation Dependencies
+        run: |
+          # Install cross-compilation dependencies
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-mingw-w64 \
+            gcc-arm-linux-gnueabihf \
+            gcc-aarch64-linux-gnu \
+            libc6-dev-i386
+            
+          # Install macOS SDK for cross-compilation (if needed)
+          # This requires additional setup for proper macOS cross-compilation
+          
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          
+  test-builds:
+    name: Test Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Test Linux Build
+        run: |
+          go mod tidy
+          GOOS=linux GOARCH=amd64 go build -v ./...
+          
+      - name: Test Windows Build
+        run: |
+          GOOS=windows GOARCH=amd64 go build -v ./...
+          
+      - name: Test macOS Build
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -v ./...
+          
+      - name: Test Windows XP Build
+        run: |
+          GOOS=windows GOARCH=386 go build -tags=legacy,windowsxp -v ./...
+          
+  test-platforms:
+    name: Test on Multiple Platforms
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        go-version: ['1.20', '1.21']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+          
+      - name: Install Dependencies
+        run: go mod tidy
+        
+      - name: Build
+        run: go build -v ./...
+        
+      - name: Test
+        run: go test -v ./...
+        
+      - name: Test Version Command
+        run: |
+          go build -o mdriver .
+          ./mdriver -version
+        shell: bash

@@ -1,0 +1,274 @@
+# GoReleaser configuration for mdriver
+# Build configuration for multiple platforms and architectures
+version: 2
+
+before:
+  hooks:
+    # Clean up before build
+    - go mod tidy
+    # Generate any required files
+    - go generate ./...
+
+builds:
+  # Modern builds (Go 1.18+)
+  - id: modern
+    binary: mdriver
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "7"
+    ignore:
+      # macOS ARM64 requires macOS 11.0+, which is fine for modern builds
+      - goos: windows
+        goarch: arm64  # Windows ARM64 support is limited
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    tags:
+      - cgo
+      - static
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+  # Windows XP+ compatible builds (Go 1.20 with older Windows support)
+  - id: windows-legacy
+    binary: mdriver
+    env:
+      - CGO_ENABLED=1
+      - GOOS=windows
+    goos:
+      - windows
+    goarch:
+      - "386"
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+      - -H windowsgui  # Windows GUI subsystem for better compatibility
+    tags:
+      - cgo
+      - legacy
+      - windowsxp
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+  # Linux ARM builds
+  - id: linux-arm
+    binary: mdriver
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - arm
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    tags:
+      - cgo
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+archives:
+  - id: default
+    format: tar.gz
+    # Use zip for Windows
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    files:
+      - README.md
+      - LICENSE*
+      - config.yaml
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: 'Performance improvements'
+      regexp: "^.*perf[(\\w)]*:+.*$"
+      order: 2
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: "{{ .Env.GITHUB_USER }}"
+    name: "{{ .Env.GITHUB_REPO }}"
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## mdriver {{.Tag}} Release
+
+    Universal File Sync and Mount Driver for tusd with platform-specific optimizations.
+
+    ### Platform Support
+    - **macOS**: Native File Provider API integration (macOS 10.15+)
+    - **Windows 10+**: Cloud Files API integration
+    - **Windows XP+**: Legacy compatibility with basic mount support
+    - **Linux**: Full FUSE and rclone SDK support
+
+  footer: |
+    ## Installation
+
+    Download the appropriate binary for your platform from the assets below.
+
+    ### Quick Start
+    ```bash
+    # Extract the archive
+    tar -xzf mdriver_*.tar.gz  # Linux/macOS
+    # or unzip mdriver_*.zip   # Windows
+
+    # Make executable (Linux/macOS)
+    chmod +x mdriver
+
+    # Check platform capabilities
+    ./mdriver -platform-info
+
+    # Run in sync mode
+    ./mdriver
+
+    # Run in mount mode
+    ./mdriver -mount
+    ```
+
+    **Full documentation**: [README.md](README.md)
+
+# Universal binaries for macOS (Intel + Apple Silicon)
+universal_binaries:
+  - id: darwin-universal
+    ids:
+      - modern
+    replace: true
+    name_template: '{{ .ProjectName }}'
+
+# Docker images
+dockers:
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:{{ .Tag }}-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+  - image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:{{ .Tag }}-arm64v8"
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:latest-arm64v8"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:{{ .Tag }}-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:{{ .Tag }}-arm64v8"
+  - name_template: "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:latest"
+    image_templates:
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:latest-amd64"
+      - "ghcr.io/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}:latest-arm64v8"
+
+# Homebrew tap (for macOS)
+brews:
+  - repository:
+      owner: "{{ .Env.GITHUB_USER }}"
+      name: homebrew-tap
+    folder: Formula
+    homepage: "https://github.com/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}"
+    description: "Universal File Sync and Mount Driver for tusd"
+    license: "MIT"
+    test: |
+      system "#{bin}/mdriver -version"
+    dependencies:
+      - name: macfuse
+        type: optional
+
+# Scoop manifest (for Windows)
+scoops:
+  - repository:
+      owner: "{{ .Env.GITHUB_USER }}"
+      name: scoop-bucket
+    folder: bucket
+    homepage: "https://github.com/{{ .Env.GITHUB_USER }}/{{ .Env.GITHUB_REPO }}"
+    description: "Universal File Sync and Mount Driver for tusd"
+    license: MIT
+
+# Snapcraft (for Linux)
+snapcrafts:
+  - name: mdriver
+    title: mdriver
+    publish: false
+    summary: Universal File Sync and Mount Driver for tusd
+    description: |
+      A Golang-based universal file synchronization and mounting driver 
+      that provides seamless integration with tusd servers across different 
+      operating systems with platform-specific optimizations.
+    grade: stable
+    confinement: strict
+    license: MIT
+    base: core22
+    plugs:
+      home:
+      removable-media:
+      fuse-support:
+      network:
+      network-bind:

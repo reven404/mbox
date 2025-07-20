@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/../../../.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../getting-started/12-factor-agents" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../getting-started/deliveron" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../getting-started/langgraph-101" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../getting-started/openai-quickstart" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../getting-started/windows-ai-studio-templates" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../post/happy-llm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../post/self-llm" vcs="Git" />
+  </component>
+</project>
