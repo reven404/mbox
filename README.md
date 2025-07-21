@@ -1,4 +1,4 @@
-# mdriver - Universal File Sync and Mount Driver for tusd
+# mbox - Universal File Sync and Mount Driver for tusd
 
 A Golang-based universal file synchronization and mounting driver that provides seamless integration with tusd servers across different operating systems.
 
@@ -45,15 +45,15 @@ Download the latest release for your platform from [GitHub Releases](../../relea
 
 ```bash
 # Linux/macOS - Download and install latest version
-curl -fsSL https://raw.githubusercontent.com/username/mdriver/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/username/mbox/main/install.sh | bash
 
 # Windows - Download from releases page or use Scoop
 scoop bucket add username https://github.com/username/scoop-bucket
-scoop install mdriver
+scoop install mbox
 
 # macOS - Use Homebrew
 brew tap username/tap
-brew install mdriver
+brew install mbox
 ```
 
 ### Build from Source
@@ -64,11 +64,11 @@ Requirements:
 
 ```bash
 # Clone the repository
-git clone https://github.com/username/mdriver.git
-cd mdriver
+git clone https://github.com/username/mbox.git
+cd mbox
 
 # Build for your platform
-go build -o mdriver .
+go build -o mbox .
 
 # Or use GoReleaser for multi-platform builds
 goreleaser build --single-target
@@ -82,10 +82,10 @@ Monitor local directory and sync files to tusd server:
 
 ```bash
 # Basic sync mode
-./mdriver
+./mbox
 
 # With custom configuration
-./mdriver -config /path/to/config.yaml
+./mbox -config /path/to/config.yaml
 ```
 
 ### Mount Mode
@@ -94,10 +94,10 @@ Mount tusd server as local filesystem:
 
 ```bash
 # Enable mount mode
-./mdriver -mount -config config.yaml
+./mbox -mount -config config.yaml
 
 # Or set mount_point in config.yaml
-./mdriver  # Will auto-detect mount mode if mount_point is set
+./mbox  # Will auto-detect mount mode if mount_point is set
 ```
 
 ### Platform Information
@@ -105,13 +105,13 @@ Mount tusd server as local filesystem:
 Check available mount capabilities on your system:
 
 ```bash
-./mdriver -platform-info
+./mbox -platform-info
 ```
 
 ### Show Version
 
 ```bash
-./mdriver -version
+./mbox -version
 ```
 
 ## Configuration
@@ -218,9 +218,15 @@ go test ./...
 ### Running with Debug Logging
 
 ```bash
-./mdriver -config config.yaml
+./mbox -config config.yaml
 # Set log_level: "debug" in config.yaml for verbose logging
 ```
+
+## 参考
+
+- https://github.com/libfuse/libfuse
+- https://github.com/rclone/rclone
+- https://github.com/juicedata/juicefs
 
 ## License
 
